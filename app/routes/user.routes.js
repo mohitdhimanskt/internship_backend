@@ -3,7 +3,7 @@ const controller = require("../controllers/user.controller");
 
 module.exports = function(app) {
   app.use(function(req, res, next) {
-    res.header(
+    res.setHeader(
       "Access-Control-Allow-Headers",
       "Origin, Content-Type, Accept"
     );

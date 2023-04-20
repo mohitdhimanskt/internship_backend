@@ -7,11 +7,16 @@ const app = express();
 var corsOptions = {
   origin: "http://localhost:8081"
 };
-
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+app.use(cors());
 
 // parse requests of content-type - application/json
 app.use(express.json());
+
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
@@ -64,15 +69,15 @@ function initial() {
         console.log("added 'user' to roles collection");
       });
 
-      new Role({
-        name: "employee"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
+      // new Role({
+      //   name: "employee"
+      // }).save(err => {
+      //   if (err) {
+      //     console.log("error", err);
+      //   }
 
-        console.log("added 'employee' to roles collection");
-      });
+      //   console.log("added 'employee' to roles collection");
+      // });
 
       new Role({
         name: "moderator"
@@ -96,11 +101,15 @@ function initial() {
     }
   });
 }
+app.get('/test',(req,res)=>{
+  res.send("test")
+})
+
 
 // routes
 require('./app/routes/auth.routes')(app);
 require('./app/routes/user.routes')(app);
-require('./app/routes/employee.routes')(app);
+// require('./app/routes/employee.routes')(app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

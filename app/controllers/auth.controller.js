@@ -1,7 +1,7 @@
 const config = require("../config/auth.config");
 const db = require("../models");
 const User = db.user;
-const Employee = db.employee;
+// const Employee = db.employee;
 const Role = db.role;
 
 var jwt = require("jsonwebtoken");
@@ -64,10 +64,10 @@ exports.signup = (req, res) => {
 };
 
 exports.signin = (req, res) => {
-  User.findOne({
-    username: req.body.username,
+  console.log(req.body);
+  const user = User.findOne({
+    email: req.body.email,
   })
-    .populate("roles", "-__v")
     .exec((err, user) => {
       if (err) {
         res.status(500).send({ message: err });
@@ -75,13 +75,15 @@ exports.signin = (req, res) => {
       }
 
       if (!user) {
-        return res.status(404).send({ message: "User Not found." });
+        return res.status(404).send({ message: "Email Not found." });
       }
+
+      console.log(user)
 
       var passwordIsValid = bcrypt.compareSync(
         req.body.password,
         user.password
-      );
+      );  
 
       if (!passwordIsValid) {
         return res.status(401).send({ message: "Invalid Password!" });
@@ -90,12 +92,8 @@ exports.signin = (req, res) => {
       var token = jwt.sign({ id: user.id }, config.secret, {
         expiresIn: 86400, // 24 hours
       });
-
-      var authorities = [];
-
-      for (let i = 0; i < user.roles.length; i++) {
-        authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
-      }
+        console.log(token)
+   
 
       req.session.token = token;
 
@@ -103,7 +101,7 @@ exports.signin = (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        roles: authorities,
+      
       });
     });
 };
@@ -116,112 +114,112 @@ exports.signout = async (req, res) => {
     this.next(err);
   }
 };
-exports.signup = (req, res) => {
-  const employeeB = new Employee({
-    username: req.body.username,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
-  });
+// exports.signup = (req, res) => {
+//   const employee = new Employee({
+//     username: req.body.username,
+//     email: req.body.email,
+//     password: bcrypt.hashSync(req.body.password, 8),
+//   });
 
-  employee.save((err, employee) => {
-    if (err) {
-      res.status(500).send({ message: err });
-      return;
-    }
+//   employee.save((err, employee) => {
+//     if (err) {
+//       res.status(500).send({ message: err });
+//       return;
+//     }
 
-    if (req.body.roles) {
-      Role.find(
-        {
-          name: { $in: req.body.roles },
-        },
-        (err, roles) => {
-          if (err) {
-            res.status(500).send({ message: err });
-            return;
-          }
+//     if (req.body.roles) {
+//       Role.find(
+//         {
+//           name: { $in: req.body.roles },
+//         },
+//         (err, roles) => {
+//           if (err) {
+//             res.status(500).send({ message: err });
+//             return;
+//           }
 
-          employee.roles = roles.map((role) => role._id);
-          employee.save((err) => {
-            if (err) {
-              res.status(500).send({ message: err });
-              return;
-            }
+//           employee.roles = roles.map((role) => role._id);
+//           employee.save((err) => {
+//             if (err) {
+//               res.status(500).send({ message: err });
+//               return;
+//             }
 
-            res.send({ message: "Employee was registered successfully!" });
-          });
-        }
-      );
-    } else {
-      Role.findOne({ name: "employee" }, (err, role) => {
-        if (err) {
-          res.status(500).send({ message: err });
-          return;
-        }
+//             res.send({ message: "Employee was registered successfully!" });
+//           });
+//         }
+//       );
+//     } else {
+//       Role.findOne({ name: "employee" }, (err, role) => {
+//         if (err) {
+//           res.status(500).send({ message: err });
+//           return;
+//         }
 
-        employee.roles = [role._id];
-        employee.save((err) => {
-          if (err) {
-            res.status(500).send({ message: err });
-            return;
-          }
+//         employee.roles = [role._id];
+//         employee.save((err) => {
+//           if (err) {
+//             res.status(500).send({ message: err });
+//             return;
+//           }
 
-          res.send({ message: "employee was registered successfully!" });
-        });
-      });
-    }
-  });
-};
+//           res.send({ message: "employee was registered successfully!" });
+//         });
+//       });
+//     }
+//   });
+// };
 
-exports.signin = (req, res) => {
-  Employee.findOne({
-    username: req.body.username,
-  })
-    .populate("roles", "-__v")
-    .exec((err, employee) => {
-      if (err) {
-        res.status(500).send({ message: err });
-        return;
-      }
+// exports.signin = (req, res) => {
+//   Employee.findOne({
+//     username: req.body.username,
+//   })
+//     .populate("roles", "-__v")
+//     .exec((err, employee) => {
+//       if (err) {
+//         res.status(500).send({ message: err });
+//         return;
+//       }
 
-      if (!employee) {
-        return res.status(404).send({ message: "Employee Not found." });
-      }
+//       if (!employee) {
+//         return res.status(404).send({ message: "Employee Not found." });
+//       }
 
-      var passwordIsValid = bcrypt.compareSync(
-        req.body.password,
-        employee.password
-      );
+//       var passwordIsValid = bcrypt.compareSync(
+//         req.body.password,
+//         employee.password
+//       );
 
-      if (!passwordIsValid) {
-        return res.status(401).send({ message: "Invalid Password!" });
-      }
+//       if (!passwordIsValid) {
+//         return res.status(401).send({ message: "Invalid Password!" });
+//       }
 
-      var token = jwt.sign({ id: employee.id }, config.secret, {
-        expiresIn: 86400, // 24 hours
-      });
+//       var token = jwt.sign({ id: employee.id }, config.secret, {
+//         expiresIn: 86400, // 24 hours
+//       });
 
-      var authorities = [];
+//       var authorities = [];
 
-      for (let i = 0; i < employee.roles.length; i++) {
-        authorities.push("ROLE_" + employee.roles[i].name.toUpperCase());
-      }
+//       for (let i = 0; i < employee.roles.length; i++) {
+//         authorities.push("ROLE_" + employee.roles[i].name.toUpperCase());
+//       }
 
-      req.session.token = token;
+//       req.session.token = token;
 
-      res.status(200).send({
-        id: employee._id,
-        username: employee.username,
-        email: user.email,
-        roles: authorities,
-      });
-    });
-};
+//       res.status(200).send({
+//         id: employee._id,
+//         username: employee.username,
+//         email: employee.email,
+//         roles: authorities,
+//       });
+//     });
+// };
 
-exports.signout = async (req, res) => {
-  try {
-    req.session = null;
-    return res.status(200).send({ message: "You've been signed out!" });
-  } catch (err) {
-    this.next(err);
-  }
-};
+// exports.signout = async (req, res) => {
+//   try {
+//     req.session = null;
+//     return res.status(200).send({ message: "You've been signed out!" });
+//   } catch (err) {
+//     this.next(err);
+//   }
+// };
